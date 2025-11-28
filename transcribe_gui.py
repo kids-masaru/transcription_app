@@ -19,7 +19,7 @@ class TranscriptionApp:
         self.api_key_var = tk.StringVar(value=os.getenv("GEMINI_API_KEY", ""))
         self.file_path_var = tk.StringVar()
         self.status_var = tk.StringVar(value="Ready")
-        self.model_var = tk.StringVar(value="gemini-2.0-flash")
+        self.model_var = tk.StringVar(value="gemini-2.5-pro")
         
         self.create_widgets()
 

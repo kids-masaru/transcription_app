@@ -65,7 +65,7 @@ def main():
         model_name = st.selectbox(
             "使用モデル (Model)",
             ["gemini-2.0-flash", "gemini-2.5-flash-lite", "gemini-2.5-flash", "gemini-2.5-pro", "gemini-3-pro"],
-            index=0
+            index=3
         )
 
     # Main Interface

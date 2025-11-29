@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 import tempfile
 import time
+import datetime
 
 # Load environment variables
 load_dotenv()
@@ -34,7 +35,7 @@ st.markdown("""
         margin-bottom: 1rem;
     }
     /* 入力フィールドのラベルを少し強調 */
-    .stTextInput > label {
+    .stTextInput > label, .stSelectbox > label, .stDateInput > label, .stRadio > label {
         font-weight: bold;
     }
     </style>
@@ -72,21 +73,58 @@ def main():
             index=3
         )
 
-    # --- 1. 詳細情報の入力エリア (ここを追加しました) ---
+    # --- 1. 詳細情報の入力エリア ---
     st.markdown("### 📝 記録情報の入力")
+    
+    # 会議の種類の選択
+    meeting_type = st.radio(
+        "会議の種類を選択してください",
+        ["運営会議", "サービス担当者会議"],
+        horizontal=True
+    )
+
     with st.container():
-        # レイアウトを見やすくするために2列に分けます
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            in_charge_name = st.text_input("担当者名")
-            user_name = st.text_input("利用者名")
-            session_date = st.text_input("開催日", placeholder="例: 2024年11月29日")
+        # --- A. 運営会議の入力項目 ---
+        if meeting_type == "運営会議":
+            col1, col2 = st.columns(2)
+            with col1:
+                # 開催日
+                session_date_obj = st.date_input("開催日", datetime.date.today())
+                session_date_str = session_date_obj.strftime('%Y年%m月%d日')
+            with col2:
+                # 開催場所
+                session_place = st.text_input("開催場所")
             
-        with col2:
-            session_place = st.text_input("開催場所")
-            session_time = st.text_input("開催時間", placeholder="例: 10:00~11:00")
-            session_count = st.text_input("開催回数", placeholder="例: 第1回")
+            # 参加者 (運営会議のみ)
+            participants = st.text_input("参加者", placeholder="例: 井﨑、武島、〇〇")
+
+        # --- B. サービス担当者会議の入力項目 ---
+        else:
+            col1, col2 = st.columns(2)
+            with col1:
+                in_charge_name = st.text_input("担当者名")
+                user_name = st.text_input("利用者名")
+                
+                # 開催日
+                session_date_obj = st.date_input("開催日", datetime.date.today())
+                session_date_str = session_date_obj.strftime('%Y年%m月%d日')
+                
+            with col2:
+                session_place = st.text_input("開催場所")
+                
+                # 時間選択
+                st.markdown("**開催時間**")
+                t_col1, t_col2 = st.columns(2)
+                time_options = [f"{h:02d}:{m:02d}" for h in range(8, 22) for m in (0, 30)]
+                with t_col1:
+                    start_time = st.selectbox("開始", time_options, index=4) # 10:00
+                with t_col2:
+                    end_time = st.selectbox("終了", time_options, index=6)   # 11:00
+                session_time_str = f"{start_time}~{end_time}"
+
+                # 開催回数
+                count_options = [f"第{i}回" for i in range(1, 21)] + ["その他"]
+                session_count = st.selectbox("開催回数", count_options)
 
     st.markdown("---")
 
@@ -146,26 +184,32 @@ def main():
                     progress_bar.progress(100)
                     status_text.text("✅ 完了しました！ (Done!)")
                     
-                    # --- 3. 出力データの作成 (ここを追加しました) ---
-                    # 指定されたフォーマットでヘッダーを作成
-                    header_text = (
-                        f"担当者：{in_charge_name}\n"
-                        f"利用者名：{user_name}\n"
-                        f"開催日：{session_date}　開催場所：{session_place}　開催時間：{session_time}　開催回数：{session_count}\n"
-                    )
+                    # --- 3. 出力データの作成 ---
+                    # 会議の種類に応じてヘッダーを作成
+                    if meeting_type == "運営会議":
+                        header_text = (
+                            f"【運営会議】\n"
+                            f"開催日：{session_date_str}　開催場所：{session_place}\n"
+                            f"参加者：{participants}\n"
+                        )
+                    else:
+                        header_text = (
+                            f"担当者：{in_charge_name}\n"
+                            f"利用者名：{user_name}\n"
+                            f"開催日：{session_date_str}　開催場所：{session_place}　開催時間：{session_time_str}　開催回数：{session_count}\n"
+                        )
                     
                     # 文字起こし本文と結合
                     final_output_text = f"{header_text}\n{response.text}"
 
                     # Display Result
                     st.subheader("📝 文字起こし結果")
-                    # 結合したデータを表示
                     st.text_area("Result", value=final_output_text, height=500)
                     
                     # Download Button
                     st.download_button(
                         label="💾 テキストファイルをダウンロード (Download .txt)",
-                        data=final_output_text,  # 結合したデータをダウンロード
+                        data=final_output_text,
                         file_name=f"{os.path.splitext(uploaded_file.name)[0]}_transcription.txt",
                         mime="text/plain"
                     )

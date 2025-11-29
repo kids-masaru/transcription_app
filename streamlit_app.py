@@ -94,9 +94,19 @@ def main():
             with col2:
                 # 開催場所
                 session_place = st.text_input("開催場所")
+                
+                # 時間選択 (運営会議にも追加)
+                st.markdown("**開催時間**")
+                t_col1, t_col2 = st.columns(2)
+                time_options = [f"{h:02d}:{m:02d}" for h in range(8, 22) for m in (0, 30)]
+                with t_col1:
+                    start_time = st.selectbox("開始", time_options, index=4, key="op_start") # 10:00
+                with t_col2:
+                    end_time = st.selectbox("終了", time_options, index=6, key="op_end")   # 11:00
+                session_time_str = f"{start_time}~{end_time}"
             
             # 参加者 (運営会議のみ)
-            participants = st.text_input("参加者", placeholder="例: 武島、加藤、川路、、、")
+            participants = st.text_input("参加者", placeholder="例: 井﨑、武島、〇〇")
 
         # --- B. サービス担当者会議の入力項目 ---
         else:
@@ -117,9 +127,9 @@ def main():
                 t_col1, t_col2 = st.columns(2)
                 time_options = [f"{h:02d}:{m:02d}" for h in range(8, 22) for m in (0, 30)]
                 with t_col1:
-                    start_time = st.selectbox("開始", time_options, index=4) # 10:00
+                    start_time = st.selectbox("開始", time_options, index=4, key="svc_start") # 10:00
                 with t_col2:
-                    end_time = st.selectbox("終了", time_options, index=6)   # 11:00
+                    end_time = st.selectbox("終了", time_options, index=6, key="svc_end")   # 11:00
                 session_time_str = f"{start_time}~{end_time}"
 
                 # 開催回数
@@ -189,7 +199,7 @@ def main():
                     if meeting_type == "運営会議":
                         header_text = (
                             f"【運営会議】\n"
-                            f"開催日：{session_date_str}　開催場所：{session_place}\n"
+                            f"開催日：{session_date_str}　開催場所：{session_place}　開催時間：{session_time_str}\n"
                             f"参加者：{participants}\n"
                         )
                     else:

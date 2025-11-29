@@ -33,6 +33,10 @@ st.markdown("""
         border-radius: 0.25rem;
         margin-bottom: 1rem;
     }
+    /* 入力フィールドのラベルを目立たせる */
+    .stTextInput > label {
+        font-weight: bold;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -68,7 +72,21 @@ def main():
             index=3
         )
 
+    # --- メタデータ入力セクション (New) ---
+    st.markdown("### 📝 記録情報の入力")
+    with st.expander("詳細情報を入力する（クリックで開閉）", expanded=True):
+        col1, col2 = st.columns(2)
+        with col1:
+            in_charge_name = st.text_input("担当者名")
+            user_name = st.text_input("利用者名")
+            session_date = st.text_input("開催日", placeholder="例: 2024年11月29日")
+        with col2:
+            session_place = st.text_input("開催場所")
+            session_time = st.text_input("開催時間", placeholder="例: 10:00~11:00")
+            session_count = st.text_input("開催回数", placeholder="例: 第1回")
+
     # Main Interface
+    st.markdown("### 📂 音声ファイルのアップロード")
     uploaded_file = st.file_uploader("音声ファイルを選択してください (MP3, M4A, WAV)", type=['mp3', 'm4a', 'wav'])
 
     if uploaded_file is not None:
@@ -124,15 +142,26 @@ def main():
                     progress_bar.progress(100)
                     status_text.text("✅ 完了しました！ (Done!)")
                     
+                    # --- データ結合処理 (New) ---
+                    # ヘッダー情報の作成
+                    header_info = (
+                        f"担当者：{in_charge_name}\n"
+                        f"利用者名：{user_name}\n"
+                        f"開催日：{session_date}　開催場所：{session_place}　開催時間：{session_time}　開催回数：{session_count}\n"
+                    )
+                    
+                    # ヘッダーと文字起こし結果を結合
+                    final_output = f"{header_info}\n{response.text}"
+
                     # 4. Display Result
                     st.subheader("📝 文字起こし結果")
-                    st.text_area("Result", value=response.text, height=400)
+                    st.text_area("Result", value=final_output, height=500)
                     
                     # 5. Download Button
                     st.download_button(
                         label="💾 テキストファイルをダウンロード (Download .txt)",
-                        data=response.text,
-                        file_name=f"{os.path.splitext(uploaded_file.name)[0]}.txt",
+                        data=final_output,
+                        file_name=f"{os.path.splitext(uploaded_file.name)[0]}_transcription.txt",
                         mime="text/plain"
                     )
                     

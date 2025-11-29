@@ -96,7 +96,7 @@ def main():
                 session_place = st.text_input("開催場所")
             
             # 参加者 (運営会議のみ)
-            participants = st.text_input("参加者", placeholder="例: 井﨑、武島、〇〇")
+            participants = st.text_input("参加者", placeholder="例: 武島、加藤、川路、、、")
 
         # --- B. サービス担当者会議の入力項目 ---
         else:
